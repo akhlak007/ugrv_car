@@ -9,7 +9,7 @@ This firmware suite controls mobile locomotion, dual-side ultrasonic corridor ma
 <div align="center">
   <img src="docs/group_photo.jpg" alt="UGRV Engineering Team & Hardware Demonstration" width="850" style="max-width: 100%; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.3);" />
   <p><strong>UGRV Autonomous Reconnaissance Platform & Engineering Team</strong><br>
-  <em>Live demonstration of the physical dual-sonar reconnaissance car, handheld mobile controller, and EchoPath spatial telemetry mapper.</em></p>
+  Live demonstration of the physical dual-sonar reconnaissance car, handheld mobile controller, and EchoPath spatial telemetry mapper.</p>
 </div>
 
 ---
@@ -78,9 +78,9 @@ code of car/
 | | `ENB` | `GPIO 33` | Right Motor PWM Speed (1 kHz, 8-bit) |
 | **Pan/Tilt Servo** | `SERVO_PIN` | `GPIO 13` | Steering / Camera Pan Servo (50 Hz, 16-bit) |
 | **Left Sonar (HC-SR04)** | `L_TRIG` | `GPIO 12` | Left Ultrasonic Trigger pulse |
-| | `L_ECHO` | `GPIO 34` | Left Ultrasonic Echo return (*Input Only*) |
+| | `L_ECHO` | `GPIO 34` | Left Ultrasonic Echo return (Input Only) |
 | **Right Sonar (HC-SR04)**| `R_TRIG` | `GPIO 15` | Right Ultrasonic Trigger pulse |
-| | `R_ECHO` | `GPIO 35` | Right Ultrasonic Echo return (*Input Only*) |
+| | `R_ECHO` | `GPIO 35` | Right Ultrasonic Echo return (Input Only) |
 
 ### 2. ESP32-CAM Camera Node (`feed_sending_camera_code.ino`)
 
@@ -109,7 +109,7 @@ code of car/
 #### HTTP API Endpoints:
 - `GET /` : Embedded responsive dark-mode mission dashboard.
 - `GET /drive?dir=[F|B|L|R|S]` : Motor movement commands (`F`orward, `B`ackward, `L`eft, `R`ight, `S`top).
-  - *Safety:* Includes 800 ms auto-stop fail-safe if network packets drop.
+  - **Safety:** Includes 800 ms auto-stop fail-safe if network packets drop.
 - `GET /speed?val=[0-100]` : Sets motor PWM duty cycle percentage.
 - `GET /servo?val=[0-180]` : Rotates servo mount angle (default center: 90°).
 - `GET /state` : Returns live JSON state (speed, direction, left/right distance, camera IP, log size, memory).

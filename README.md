@@ -15,7 +15,7 @@
 <div align="center">
   <img src="assets/group_photo.jpg" alt="UGRV Engineering Team & EchoPath System Demonstration" width="850" style="max-width: 100%; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.3);" />
   <p><strong>UGRV Autonomous Reconnaissance System & Team Demonstration</strong><br>
-  <em>Showcasing the EchoPath Sonar Map Studio (left), the physical UGRV mobile platform with dual ultrasonic sensors (center), and the real-time mobile dashboard controller (right).</em></p>
+  Showcasing the EchoPath Sonar Map Studio (left), the physical UGRV mobile platform with dual ultrasonic sensors (center), and the real-time mobile dashboard controller (right).</p>
 </div>
 
 ---
