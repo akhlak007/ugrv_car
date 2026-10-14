@@ -2,7 +2,7 @@
 
 Complete embedded firmware codebase for the **Unmanned Ground Reconnaissance Vehicle (UGRV)** and its companion wireless **ESP32-CAM** surveillance node.
 
-This firmware suite controls mobile locomotion, dual-side ultrasonic corridor mapping, LittleFS telemetry logging (`/sonar.csv`), fail-safe communications, live MJPEG video streaming, and seamless integration with the [EchoPath Sonar Map Studio](https://akhlak007.github.io/map/) web application.
+This firmware suite controls mobile locomotion, dual-side ultrasonic corridor mapping, LittleFS telemetry logging (`/sonar.csv`), fail-safe communications, live MJPEG video streaming, and seamless integration with the [EchoPath — Sonar Map Studio](https://akhlak007.github.io/ugrv_car/) web application.
 
 ---
 
@@ -140,7 +140,7 @@ Date,Time,Left Distance (cm),Right Distance (cm)
 10-09-2026,06:52:13 PM,38.1,40.1
 ```
 
-This telemetry log can be uploaded directly into the root [EchoPath Sonar Map Studio](https://akhlak007.github.io/map/) to generate interactive 2D corridor plans, boundary obstacles, and clearance analytics.
+This telemetry log can be uploaded directly into the root [EchoPath — Sonar Map Studio](https://akhlak007.github.io/ugrv_car/) to generate interactive 2D corridor plans, boundary obstacles, and clearance analytics.
 
 ---
 

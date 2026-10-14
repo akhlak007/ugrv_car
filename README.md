@@ -1,6 +1,6 @@
 # EchoPath — Sonar Map Studio
 
-[![GitHub Pages](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen?style=flat-square&logo=github)](https://akhlak007.github.io/map/)
+[![GitHub Pages](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen?style=flat-square&logo=github)](https://akhlak007.github.io/ugrv_car/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-None-blue?style=flat-square)](#)
 
@@ -8,7 +8,7 @@
 
 **EchoPath** is a dependency-free, high-performance web application designed to reconstruct 2D corridor plan views, detect clearance hazards, and simulate missions from raw sonar telemetry logs.
 
-🌐 **Live Demo:** [https://akhlak007.github.io/map/](https://akhlak007.github.io/map/)
+🌐 **Live Demo:** [EchoPath — Sonar Map Studio](https://akhlak007.github.io/ugrv_car/)
 
 ---
 
