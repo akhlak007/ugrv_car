@@ -6,6 +6,14 @@ This firmware suite controls mobile locomotion, dual-side ultrasonic corridor ma
 
 ---
 
+<div align="center">
+  <img src="docs/group_photo.jpg" alt="UGRV Engineering Team & Hardware Demonstration" width="850" style="max-width: 100%; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.3);" />
+  <p><strong>UGRV Autonomous Reconnaissance Platform & Engineering Team</strong><br>
+  <em>Live demonstration of the physical dual-sonar reconnaissance car, handheld mobile controller, and EchoPath spatial telemetry mapper.</em></p>
+</div>
+
+---
+
 ## 📁 Directory Structure
 
 ```text
@@ -18,6 +26,7 @@ code of car/
 ├── feed_sending_camera_code/                  # Arduino IDE Sketch Directory
 │   └── feed_sending_camera_code.ino           # Direct Arduino IDE compatible sketch
 └── docs/
+    ├── group_photo.jpg                        # Team & hardware demonstration photo
     └── UGRV_Final_Project_Report.pdf          # Full engineering project report & documentation
 ```
 
