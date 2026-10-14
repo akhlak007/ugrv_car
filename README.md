@@ -109,10 +109,26 @@ Open [http://localhost:8080](http://localhost:8080) in your browser.
 
 ---
 
+## 🚗 UGRV Hardware & Firmware
+
+The embedded firmware running on the physical vehicle that records these sonar logs is available in the [`code of car/`](./code%20of%20car/) directory:
+- **[ESP32 Car Controller](./code%20of%20car/ZSP1774_UGRV_Car_for_Surveillance.ino)**: Manages L298N motors, servo steering, left/right HC-SR04 sonar pinging, Wi-Fi access point (`UGRV CAR`), and LittleFS `/sonar.csv` data logging.
+- **[ESP32-CAM Node](./code%20of%20car/feed_sending_camera_code.ino)**: Delivers live MJPEG video stream on port 81 (`/stream`), snapshots, flash LED PWM, and autonomous hub auto-discovery.
+- **[Hardware & Firmware Guide](./code%20of%20car/README.md)**: Detailed wiring tables, GPIO mappings, API endpoints, and Arduino IDE setup.
+
+---
+
 ## 🛠️ Project Structure
 
 ```
 .
+├── code of car/      # Embedded ESP32 & ESP32-CAM firmware & schematics
+│   ├── ZSP1774_UGRV_Car_for_Surveillance.ino
+│   ├── feed_sending_camera_code.ino
+│   ├── ZSP1774_UGRV_Car_for_Surveillance/
+│   ├── feed_sending_camera_code/
+│   ├── docs/
+│   └── README.md
 ├── index.html        # Main studio UI layout & HUD elements
 ├── styles.css        # Tactical dark theme design system
 ├── app.js            # 2D canvas engine, sonar physics, telemetry parser
