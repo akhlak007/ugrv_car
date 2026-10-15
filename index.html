@@ -12,9 +12,15 @@
   <header class="topbar">
     <a class="brand" href="#" aria-label="EchoPath home">
       <span class="brand-mark"><i></i><i></i><i></i></span>
-      <span><b>ECHOPATH</b><small>SONAR MAP STUDIO</small></span>
+      <span><b>ECHOPATH</b><small>TACTICAL SLAM &amp; INTELLIGENCE</small></span>
     </a>
-    <div class="status"><span class="status-dot"></span><span id="systemStatus">SYSTEM READY</span></div>
+    <div class="topbar-actions">
+      <button class="ai-debrief-btn" id="aiDebriefBtn" title="Generate AI Mission Intelligence Report">
+        <span class="ai-pulse"></span>
+        <span>⚡ AI TACTICAL DEBRIEF</span>
+      </button>
+      <div class="status"><span class="status-dot"></span><span id="systemStatus">SYSTEM READY</span></div>
+    </div>
   </header>
 
   <main>
@@ -51,6 +57,19 @@
         <label class="field-label" for="aspectInput"><span>CORRIDOR WIDTH ZOOM</span><output id="aspectValue">3.0×</output></label>
         <input id="aspectInput" type="range" min="1" max="10" step="0.5" value="3.0" />
         <p class="hint">Expands corridor width so walls, obstacles & bottlenecks are easily visible.</p>
+
+        <div class="divider"></div>
+        <div class="panel-section-title"><span>AI TACTICAL INTELLIGENCE</span></div>
+        <div class="toggle-row"><span><b>AI UNIT ZONING</b><small>Tank vs Soldier clearance sectors</small></span><button id="aiZoningToggle" class="toggle active" role="switch" aria-checked="true"><i></i></button></div>
+        <div class="toggle-row"><span><b>OPTIMAL TRAJECTORY</b><small>AI collision-free centerline</small></span><button id="aiTrajectoryToggle" class="toggle active" role="switch" aria-checked="true"><i></i></button></div>
+
+        <div class="tactical-thresholds">
+          <label class="field-label-small" for="tankThresholdInput"><span>TANK CLEARANCE REQ.</span><output id="tankThresholdVal">110 cm</output></label>
+          <input id="tankThresholdInput" type="range" min="80" max="180" step="5" value="110" />
+
+          <label class="field-label-small" for="soldierThresholdInput"><span>SOLDIER CLEARANCE REQ.</span><output id="soldierThresholdVal">60 cm</output></label>
+          <input id="soldierThresholdInput" type="range" min="40" max="90" step="5" value="60" />
+        </div>
 
         <div class="divider"></div>
         <div class="toggle-row"><span><b>FOLLOW VEHICLE</b><small>Keep vehicle centered</small></span><button id="followToggle" class="toggle active" role="switch" aria-checked="true"><i></i></button></div>
@@ -91,6 +110,10 @@
               <div><span>Clearance:</span><strong id="ttClearance">—</strong></div>
               <div><span>Distance:</span><strong id="ttDist">—</strong></div>
             </div>
+            <div class="tooltip-tactical-row">
+              <span id="ttSoldierTag" class="tt-tag">🪖 Soldier: —</span>
+              <span id="ttTankTag" class="tt-tag">🛡️ Tank: —</span>
+            </div>
             <div class="tooltip-status" id="ttStatus">NORMAL CLEARANCE</div>
           </div>
 
@@ -122,6 +145,72 @@
           <div><span><i class="sensor right"></i>RIGHT</span><strong id="rightValue">—<small>cm</small></strong></div>
         </div>
         <div class="clearance-card"><span>AVAILABLE CLEARANCE</span><strong id="clearanceValue">— <small>cm</small></strong><div class="clearance-track"><i id="clearanceBar"></i></div><small id="clearanceStatus">WAITING FOR DATA</small></div>
+
+        <!-- AI Tactical Unit Viability Card -->
+        <!-- AI Mission Intelligence Card (Dual Mode: Defense & Disaster Rescue) -->
+        <div class="ai-tactical-card">
+          <div class="mission-mode-selector">
+            <button class="mode-pill active" id="modeDefenseBtn" aria-pressed="true" title="Military Tactical Reconnaissance Mode">🛡️ DEFENSE</button>
+            <button class="mode-pill disaster" id="modeDisasterBtn" aria-pressed="false" title="Humanitarian Disaster & Search/Rescue Mode">🚑 DISASTER RESCUE</button>
+          </div>
+
+          <div class="ai-card-header">
+            <span id="aiCardTitle">AI TACTICAL UNIT CLEARANCE</span>
+            <span class="ai-chip" id="aiCardChip">NEURAL SLAM</span>
+          </div>
+
+          <div class="tactical-unit-list">
+            <div class="tactical-unit-item" id="unitTankItem">
+              <div class="unit-icon" id="unit1Icon">🛡️</div>
+              <div class="unit-info">
+                <strong id="unit1Title">ARMORED TANK / MBT</strong>
+                <small>Required: <span id="unitTankReqLabel">&ge; 110 cm</span></small>
+              </div>
+              <span class="tactical-badge denied" id="unitTankBadge">DENIED</span>
+            </div>
+
+            <div class="tactical-unit-item" id="unitSoldierItem">
+              <div class="unit-icon" id="unit2Icon">🪖</div>
+              <div class="unit-info">
+                <strong id="unit2Title">INFANTRY SOLDIER</strong>
+                <small>Required: <span id="unitSoldierReqLabel">&ge; 60 cm</span></small>
+              </div>
+              <span class="tactical-badge viable" id="unitSoldierBadge">PASSABLE</span>
+            </div>
+
+            <div class="tactical-unit-item" id="unitRoverItem">
+              <div class="unit-icon" id="unit3Icon">🤖</div>
+              <div class="unit-info">
+                <strong id="unit3Title">UGRV RECON ROVER</strong>
+                <small>Required: <span id="unitRoverReqLabel">&ge; 28 cm</span></small>
+              </div>
+              <span class="tactical-badge clearway" id="unitRoverBadge">CLEARWAY</span>
+            </div>
+          </div>
+
+          <div class="tactical-summary-bars">
+            <div class="tac-bar-row">
+              <span id="summaryBar1Label">🪖 Soldier Viability</span>
+              <div class="tac-bar-track"><i id="soldierViabilityBar" style="width: 0%"></i></div>
+              <b id="soldierViabilityVal">—%</b>
+            </div>
+            <div class="tac-bar-row">
+              <span id="summaryBar2Label">🛡️ Tank Accessible</span>
+              <div class="tac-bar-track"><i id="tankViabilityBar" style="width: 0%"></i></div>
+              <b id="tankViabilityVal">—%</b>
+            </div>
+          </div>
+
+          <!-- Structural Collapse Risk Meter (Disaster USAR Novelty) -->
+          <div class="collapse-risk-box">
+            <div class="risk-meter-header">
+              <span>⚠️ STRUCTURAL COLLAPSE RISK</span>
+              <strong id="collapseRiskValue">LOW (14%)</strong>
+            </div>
+            <div class="risk-meter-track"><i id="collapseRiskBar" style="width: 14%"></i></div>
+            <small id="collapseRiskHint">Acoustic wall symmetry: Stable</small>
+          </div>
+        </div>
         <div class="stats-grid">
           <div><span>SAMPLES</span><b id="statSamples">—</b></div>
           <div><span>DURATION</span><b id="statDuration">—</b></div>
@@ -132,6 +221,79 @@
     </section>
   </main>
   <footer><span>ECHOPATH / LOCAL PROCESSING</span><span>YOUR SENSOR DATA NEVER LEAVES THIS DEVICE</span></footer>
+
+  <!-- AI Tactical Mission Debrief Modal -->
+  <div class="ai-modal-overlay" id="aiDebriefModal" aria-hidden="true" hidden>
+    <div class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="aiDebriefTitle" aria-describedby="debriefSubtitle" tabindex="-1">
+      <div class="ai-modal-header">
+        <div class="ai-modal-title-wrap">
+          <span class="ai-modal-badge">TACTICAL INTELLIGENCE BRIEFING</span>
+          <h2 id="aiDebriefTitle">UGRV-AI Reconnaissance Assessment</h2>
+          <p id="debriefSubtitle">Corridor Viability Analysis & Threat Classification</p>
+        </div>
+        <button class="ai-modal-close" id="aiModalClose" title="Close Debrief">&times;</button>
+      </div>
+
+      <div class="ai-modal-body">
+        <div class="debrief-stat-cards">
+          <div class="debrief-card">
+            <span>TOTAL SCAN ROUTE</span>
+            <strong id="debriefDistance">— m</strong>
+            <small id="debriefSamples">— telemetry samples</small>
+          </div>
+          <div class="debrief-card highlight-soldier">
+            <span id="debriefUnit2Label">🪖 SOLDIER PASSAGE</span>
+            <strong id="debriefSoldierPct">—%</strong>
+            <small id="debriefSoldierDist">Passable corridor</small>
+          </div>
+          <div class="debrief-card highlight-tank">
+            <span id="debriefUnit1Label">🛡️ TANK / ARMOR ACCESS</span>
+            <strong id="debriefTankPct">—%</strong>
+            <small id="debriefTankDist">Vehicle clearance</small>
+          </div>
+          <div class="debrief-card highlight-danger">
+            <span>⚠️ CHOKEPOINTS / HAZARDS</span>
+            <strong id="debriefChokepoints">—</strong>
+            <small>Breaches / Ambush hazard</small>
+          </div>
+        </div>
+
+        <div class="debrief-section">
+          <h3>TACTICAL RECOMMENDATION & STRATEGIC AI DIRECTIVE</h3>
+          <div class="debrief-ai-box" id="debriefRecommendation">
+            Analyzing mission spatial signatures...
+          </div>
+        </div>
+
+        <div class="debrief-section">
+          <h3>CORRIDOR SECTOR CLASSIFICATION BREAKDOWN</h3>
+          <div class="debrief-table-wrap">
+            <table class="debrief-table">
+              <thead>
+                <tr>
+                  <th>Sector</th>
+                  <th>Range (m)</th>
+                  <th>Clearance Avg</th>
+                  <th id="debriefUnit2Header">🪖 Soldier Status</th>
+                  <th id="debriefUnit1Header">🛡️ Tank Status</th>
+                  <th>Tactical Directive</th>
+                </tr>
+              </thead>
+              <tbody id="debriefSectorTable">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-modal-footer">
+        <button class="secondary-btn" id="aiPrintBtn">🖨️ Print / Save Intelligence Report</button>
+        <button class="primary-btn" id="aiModalCloseBtn">Close Briefing</button>
+      </div>
+    </div>
+  </div>
+
   <script src="demo-data.js"></script>
   <script src="app.js"></script>
 </body>

@@ -63,6 +63,65 @@
   const statMinEl = document.getElementById('statMin');
   const systemStatusEl = document.getElementById('systemStatus');
 
+  // AI Tactical DOM Elements
+  const aiDebriefBtn = document.getElementById('aiDebriefBtn');
+  const aiZoningToggle = document.getElementById('aiZoningToggle');
+  const aiTrajectoryToggle = document.getElementById('aiTrajectoryToggle');
+  const tankThresholdInput = document.getElementById('tankThresholdInput');
+  const tankThresholdVal = document.getElementById('tankThresholdVal');
+  const soldierThresholdInput = document.getElementById('soldierThresholdInput');
+  const soldierThresholdVal = document.getElementById('soldierThresholdVal');
+  const unitTankBadge = document.getElementById('unitTankBadge');
+  const unitSoldierBadge = document.getElementById('unitSoldierBadge');
+  const unitRoverBadge = document.getElementById('unitRoverBadge');
+  const unitTankReqLabel = document.getElementById('unitTankReqLabel');
+  const unitSoldierReqLabel = document.getElementById('unitSoldierReqLabel');
+  const unitRoverReqLabel = document.getElementById('unitRoverReqLabel');
+  const soldierViabilityBar = document.getElementById('soldierViabilityBar');
+  const soldierViabilityVal = document.getElementById('soldierViabilityVal');
+  const tankViabilityBar = document.getElementById('tankViabilityBar');
+  const tankViabilityVal = document.getElementById('tankViabilityVal');
+  const ttSoldierTag = document.getElementById('ttSoldierTag');
+  const ttTankTag = document.getElementById('ttTankTag');
+
+  // Mission Mode & Disaster DOM Elements
+  const modeDefenseBtn = document.getElementById('modeDefenseBtn');
+  const modeDisasterBtn = document.getElementById('modeDisasterBtn');
+  const aiCardTitle = document.getElementById('aiCardTitle');
+  const aiCardChip = document.getElementById('aiCardChip');
+  const unit1Icon = document.getElementById('unit1Icon');
+  const unit1Title = document.getElementById('unit1Title');
+  const unit2Icon = document.getElementById('unit2Icon');
+  const unit2Title = document.getElementById('unit2Title');
+  const unit3Icon = document.getElementById('unit3Icon');
+  const unit3Title = document.getElementById('unit3Title');
+  const summaryBar1Label = document.getElementById('summaryBar1Label');
+  const summaryBar2Label = document.getElementById('summaryBar2Label');
+  const collapseRiskValue = document.getElementById('collapseRiskValue');
+  const collapseRiskBar = document.getElementById('collapseRiskBar');
+  const collapseRiskHint = document.getElementById('collapseRiskHint');
+
+  // Debrief Modal DOM Elements
+  const aiDebriefModal = document.getElementById('aiDebriefModal');
+  const aiModalClose = document.getElementById('aiModalClose');
+  const aiModalCloseBtn = document.getElementById('aiModalCloseBtn');
+  const aiPrintBtn = document.getElementById('aiPrintBtn');
+  const debriefDistance = document.getElementById('debriefDistance');
+  const debriefSamples = document.getElementById('debriefSamples');
+  const debriefSoldierPct = document.getElementById('debriefSoldierPct');
+  const debriefSoldierDist = document.getElementById('debriefSoldierDist');
+  const debriefTankPct = document.getElementById('debriefTankPct');
+  const debriefTankDist = document.getElementById('debriefTankDist');
+  const debriefChokepoints = document.getElementById('debriefChokepoints');
+  const debriefRecommendation = document.getElementById('debriefRecommendation');
+  const debriefSectorTable = document.getElementById('debriefSectorTable');
+  const debriefSubtitle = document.getElementById('debriefSubtitle');
+  const aiDebriefTitle = document.getElementById('aiDebriefTitle');
+  const debriefUnit1Label = document.getElementById('debriefUnit1Label');
+  const debriefUnit2Label = document.getElementById('debriefUnit2Label');
+  const debriefUnit1Header = document.getElementById('debriefUnit1Header');
+  const debriefUnit2Header = document.getElementById('debriefUnit2Header');
+
   const mapCtx = mapCanvas ? mapCanvas.getContext('2d') : null;
   const radarCtx = radarCanvas ? radarCanvas.getContext('2d') : null;
   const minimapCtx = minimapCanvas ? minimapCanvas.getContext('2d') : null;
@@ -83,6 +142,17 @@
   let displayRange = 0; // 0 = Auto
   let radarAngle = 0;
   let animFrameId = null;
+
+  // AI Tactical State
+  let isAiZoning = true;
+  let isAiTrajectory = true;
+  let currentMissionMode = 'defense'; // 'defense' or 'disaster'
+  let tankClearanceReq = 110; // cm
+  let soldierClearanceReq = 60; // cm
+  let roverClearanceReq = 28; // cm
+  let stretcherClearanceReq = 85; // cm
+  let firefighterClearanceReq = 65; // cm
+  let lastFocusedElement = null;
 
   // Pan & Zoom Viewport State
   let viewScale = 1.0;
@@ -243,6 +313,89 @@
         hazardToggle.setAttribute('aria-checked', String(isHazardsEnabled));
       });
     }
+
+    // AI Tactical Controls
+    if (aiZoningToggle) {
+      aiZoningToggle.addEventListener('click', () => {
+        isAiZoning = !isAiZoning;
+        aiZoningToggle.classList.toggle('active', isAiZoning);
+        aiZoningToggle.setAttribute('aria-checked', String(isAiZoning));
+      });
+    }
+
+    if (aiTrajectoryToggle) {
+      aiTrajectoryToggle.addEventListener('click', () => {
+        isAiTrajectory = !isAiTrajectory;
+        aiTrajectoryToggle.classList.toggle('active', isAiTrajectory);
+        aiTrajectoryToggle.setAttribute('aria-checked', String(isAiTrajectory));
+      });
+    }
+
+    if (tankThresholdInput) {
+      tankThresholdInput.addEventListener('input', (e) => {
+        tankClearanceReq = parseInt(e.target.value, 10);
+        if (tankThresholdVal) tankThresholdVal.textContent = `${tankClearanceReq} cm`;
+        if (unitTankReqLabel && currentMissionMode === 'defense') unitTankReqLabel.textContent = `≥ ${tankClearanceReq} cm`;
+        updateTacticalViabilityStats();
+        setSampleIndex(currentIndex);
+      });
+    }
+
+    if (soldierThresholdInput) {
+      soldierThresholdInput.addEventListener('input', (e) => {
+        soldierClearanceReq = parseInt(e.target.value, 10);
+        if (soldierThresholdVal) soldierThresholdVal.textContent = `${soldierClearanceReq} cm`;
+        if (unitSoldierReqLabel && currentMissionMode === 'defense') unitSoldierReqLabel.textContent = `≥ ${soldierClearanceReq} cm`;
+        updateTacticalViabilityStats();
+        setSampleIndex(currentIndex);
+      });
+    }
+
+    // Mission Mode Switcher (Defense vs Disaster Rescue)
+    if (modeDefenseBtn) {
+      modeDefenseBtn.addEventListener('click', () => setMissionMode('defense'));
+    }
+    if (modeDisasterBtn) {
+      modeDisasterBtn.addEventListener('click', () => setMissionMode('disaster'));
+    }
+
+    // AI Debrief Modal triggers
+    if (aiDebriefBtn) {
+      aiDebriefBtn.addEventListener('click', openAiDebriefModal);
+    }
+    if (aiModalClose) {
+      aiModalClose.addEventListener('click', closeAiDebriefModal);
+    }
+    if (aiModalCloseBtn) {
+      aiModalCloseBtn.addEventListener('click', closeAiDebriefModal);
+    }
+    if (aiDebriefModal) {
+      aiDebriefModal.addEventListener('click', (e) => {
+        if (e.target === aiDebriefModal) closeAiDebriefModal();
+      });
+    }
+    if (aiPrintBtn) {
+      aiPrintBtn.addEventListener('click', () => {
+        window.print();
+      });
+    }
+    document.addEventListener('keydown', (e) => {
+      if (!aiDebriefModal || !aiDebriefModal.classList.contains('active')) return;
+      if (e.key === 'Escape') closeAiDebriefModal();
+      if (e.key !== 'Tab') return;
+
+      const focusable = [...aiDebriefModal.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])')];
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
 
     // Playback Controls
     if (playButton) {
@@ -639,6 +792,197 @@
 
     const minClearance = Math.min(...samples.map(s => s.clearance));
     if (statMinEl) statMinEl.textContent = `${minClearance.toFixed(1)} cm`;
+
+    // Recompute AI route viability
+    updateTacticalViabilityStats();
+  }
+
+  // Switch between Defense and Disaster Rescue Modes
+  function setMissionMode(mode) {
+    currentMissionMode = mode;
+    if (mode === 'disaster') {
+      if (tankThresholdInput) tankThresholdInput.disabled = true;
+      if (soldierThresholdInput) soldierThresholdInput.disabled = true;
+      if (modeDisasterBtn) modeDisasterBtn.classList.add('active');
+      if (modeDefenseBtn) modeDefenseBtn.classList.remove('active');
+      if (modeDisasterBtn) modeDisasterBtn.setAttribute('aria-pressed', 'true');
+      if (modeDefenseBtn) modeDefenseBtn.setAttribute('aria-pressed', 'false');
+      if (aiCardTitle) aiCardTitle.textContent = 'AI RESCUE CLEARANCE';
+      if (aiCardChip) aiCardChip.textContent = 'USAR / INSARAG';
+      if (unit1Icon) unit1Icon.textContent = '🚑';
+      if (unit1Title) unit1Title.textContent = 'MEDICAL STRETCHER';
+      if (unitTankReqLabel) unitTankReqLabel.innerHTML = `&ge; ${stretcherClearanceReq} cm`;
+      if (unit2Icon) unit2Icon.textContent = '🧑‍🚒';
+      if (unit2Title) unit2Title.textContent = 'FIREFIGHTER (SCBA)';
+      if (unitSoldierReqLabel) unitSoldierReqLabel.innerHTML = `&ge; ${firefighterClearanceReq} cm`;
+      if (unit3Icon) unit3Icon.textContent = '🐕';
+      if (unit3Title) unit3Title.textContent = 'K9 SEARCH DOG';
+      if (unitRoverReqLabel) unitRoverReqLabel.innerHTML = '&ge; 45 cm';
+      if (summaryBar1Label) summaryBar1Label.textContent = '🧑‍🚒 Firefighter Viable';
+      if (summaryBar2Label) summaryBar2Label.textContent = '🚑 Stretcher Access';
+    } else {
+      if (tankThresholdInput) tankThresholdInput.disabled = false;
+      if (soldierThresholdInput) soldierThresholdInput.disabled = false;
+      if (modeDefenseBtn) modeDefenseBtn.classList.add('active');
+      if (modeDisasterBtn) modeDisasterBtn.classList.remove('active');
+      if (modeDefenseBtn) modeDefenseBtn.setAttribute('aria-pressed', 'true');
+      if (modeDisasterBtn) modeDisasterBtn.setAttribute('aria-pressed', 'false');
+      if (aiCardTitle) aiCardTitle.textContent = 'AI TACTICAL UNIT CLEARANCE';
+      if (aiCardChip) aiCardChip.textContent = 'NEURAL SLAM';
+      if (unit1Icon) unit1Icon.textContent = '🛡️';
+      if (unit1Title) unit1Title.textContent = 'ARMORED TANK / MBT';
+      if (unitTankReqLabel) unitTankReqLabel.innerHTML = `&ge; ${tankClearanceReq} cm`;
+      if (unit2Icon) unit2Icon.textContent = '🪖';
+      if (unit2Title) unit2Title.textContent = 'INFANTRY SOLDIER';
+      if (unitSoldierReqLabel) unitSoldierReqLabel.innerHTML = `&ge; ${soldierClearanceReq} cm`;
+      if (unit3Icon) unit3Icon.textContent = '🤖';
+      if (unit3Title) unit3Title.textContent = 'UGRV RECON ROVER';
+      if (unitRoverReqLabel) unitRoverReqLabel.innerHTML = `&ge; ${roverClearanceReq} cm`;
+      if (summaryBar1Label) summaryBar1Label.textContent = '🪖 Soldier Viability';
+      if (summaryBar2Label) summaryBar2Label.textContent = '🛡️ Tank Accessible';
+    }
+    updateTacticalViabilityStats();
+    setSampleIndex(currentIndex);
+  }
+
+  // Calculate Structural Collapse Risk (Acoustic Rubble Symmetry)
+  function calculateStructuralCollapseRisk(sample, prevSample) {
+    if (!sample) return { riskPct: 14, label: 'LOW (14%)', hint: 'Acoustic geometry stable' };
+    let pinchRisk = 0;
+    if (sample.clearance < 32) pinchRisk += 50;
+    else if (sample.clearance < 48) pinchRisk += 28;
+
+    // Asymmetry risk (one wall pinching inwards)
+    const asymmetry = Math.abs(sample.left - sample.right);
+    if (asymmetry > 35) pinchRisk += 25;
+    else if (asymmetry > 18) pinchRisk += 14;
+
+    // Sudden narrowing from previous step
+    if (prevSample) {
+      const dClearance = prevSample.clearance - sample.clearance;
+      if (dClearance > 10) pinchRisk += 20;
+    }
+
+    const riskPct = Math.min(94, Math.max(12, pinchRisk));
+    let label = `LOW (${riskPct}%)`;
+    let hint = 'Acoustic wall symmetry: Stable';
+    if (riskPct > 65) {
+      label = `CRITICAL (${riskPct}%)`;
+      hint = 'Severe asymmetric wall buckling / collapse hazard';
+    } else if (riskPct >= 35) {
+      label = `MODERATE (${riskPct}%)`;
+      hint = 'Structural rubble constriction detected';
+    }
+    return { riskPct, label, hint };
+  }
+
+  // AI Tactical / Disaster Evaluation for single sample
+  function evaluateSampleTactical(sample) {
+    if (!sample) return { unit1: 'denied', unit2: 'denied', unit3: 'pinch', soldier: 'denied', tank: 'denied', rover: 'pinch' };
+    const cl = sample.clearance;
+    const l = sample.left;
+    const r = sample.right;
+
+    if (currentMissionMode === 'disaster') {
+      // Unit 1: Medical Stretcher (>= stretcherClearanceReq, e.g. 85cm)
+      const isStretcherViable = cl >= stretcherClearanceReq && l >= 20 && r >= 20;
+
+      // Unit 2: Firefighter SCBA (>= firefighterClearanceReq, e.g. 65cm)
+      let ffStatus = 'denied';
+      if (cl >= firefighterClearanceReq) {
+        ffStatus = 'viable';
+      } else if (cl >= 42) {
+        ffStatus = 'restricted'; // crawl
+      } else {
+        ffStatus = 'denied';
+      }
+
+      // Unit 3: K9 Search Dog (>= 45cm)
+      const isK9Viable = cl >= 45 ? 'clearway' : 'pinch';
+
+      return {
+        unit1: isStretcherViable ? 'viable' : 'denied',
+        unit2: ffStatus,
+        unit3: isK9Viable,
+        soldier: ffStatus,
+        tank: isStretcherViable ? 'viable' : 'denied',
+        rover: isK9Viable
+      };
+    } else {
+      // Defense Mode: Tank, Soldier, Rover
+      const isTankViable = cl >= tankClearanceReq && l >= 25 && r >= 25;
+      let soldierStatus = 'denied';
+      if (cl >= soldierClearanceReq) {
+        soldierStatus = 'viable';
+      } else if (cl >= 38) {
+        soldierStatus = 'restricted';
+      } else {
+        soldierStatus = 'denied';
+      }
+      const roverStatus = cl >= roverClearanceReq ? 'clearway' : 'pinch';
+
+      return {
+        unit1: isTankViable ? 'viable' : 'denied',
+        unit2: soldierStatus,
+        unit3: roverStatus,
+        soldier: soldierStatus,
+        tank: isTankViable ? 'viable' : 'denied',
+        rover: roverStatus
+      };
+    }
+  }
+
+  function summarizeRouteViability() {
+    if (samples.length < 2) {
+      const tactical = samples.length ? evaluateSampleTactical(samples[0]) : null;
+      return {
+        unit1Pct: tactical && tactical.unit1 === 'viable' ? 100 : 0,
+        unit2Pct: tactical && tactical.unit2 === 'viable' ? 100 : 0,
+        unit1Distance: 0,
+        unit2Distance: 0
+      };
+    }
+
+    let unit1Distance = 0;
+    let unit2Distance = 0;
+    let totalDistance = 0;
+    for (let i = 0; i < samples.length - 1; i++) {
+      const segmentDistance = Math.max(0, samples[i + 1].y - samples[i].y);
+      const current = evaluateSampleTactical(samples[i]);
+      const next = evaluateSampleTactical(samples[i + 1]);
+      totalDistance += segmentDistance;
+      unit1Distance += segmentDistance * ((current.unit1 === 'viable' ? 1 : 0) + (next.unit1 === 'viable' ? 1 : 0)) / 2;
+      unit2Distance += segmentDistance * ((current.unit2 === 'viable' ? 1 : 0) + (next.unit2 === 'viable' ? 1 : 0)) / 2;
+    }
+
+    return {
+      unit1Pct: totalDistance ? Math.round((unit1Distance / totalDistance) * 100) : 0,
+      unit2Pct: totalDistance ? Math.round((unit2Distance / totalDistance) * 100) : 0,
+      unit1Distance,
+      unit2Distance
+    };
+  }
+
+  function countChokepointSegments(threshold = 35) {
+    let count = 0;
+    let insideChokepoint = false;
+    for (const sample of samples) {
+      const isChokepoint = sample.clearance < threshold;
+      if (isChokepoint && !insideChokepoint) count++;
+      insideChokepoint = isChokepoint;
+    }
+    return count;
+  }
+
+  // Update overall route stats for active mode
+  function updateTacticalViabilityStats() {
+    if (!samples.length) return;
+    const { unit1Pct, unit2Pct } = summarizeRouteViability();
+
+    if (soldierViabilityBar) soldierViabilityBar.style.width = `${unit2Pct}%`;
+    if (soldierViabilityVal) soldierViabilityVal.textContent = `${unit2Pct}%`;
+    if (tankViabilityBar) tankViabilityBar.style.width = `${unit1Pct}%`;
+    if (tankViabilityVal) tankViabilityVal.textContent = `${unit1Pct}%`;
   }
 
   function setSampleIndex(idx) {
@@ -680,6 +1024,57 @@
         clearanceStatusEl.textContent = 'OPEN CLEARWAY';
         clearanceStatusEl.style.color = 'var(--cyan)';
       }
+    }
+
+    // Update Live AI Unit Indicators
+    const tac = evaluateSampleTactical(sample);
+    if (unitTankBadge) {
+      if (tac.unit1 === 'viable') {
+        unitTankBadge.className = 'tactical-badge viable';
+        unitTankBadge.textContent = 'PASSABLE';
+      } else {
+        unitTankBadge.className = 'tactical-badge denied';
+        unitTankBadge.textContent = currentMissionMode === 'disaster' ? 'STRETCHER BLOCKED' : 'ACCESS DENIED';
+      }
+    }
+
+    if (unitSoldierBadge) {
+      if (tac.unit2 === 'viable') {
+        unitSoldierBadge.className = 'tactical-badge viable';
+        unitSoldierBadge.textContent = 'PASSABLE';
+      } else if (tac.unit2 === 'restricted') {
+        unitSoldierBadge.className = 'tactical-badge restricted';
+        unitSoldierBadge.textContent = currentMissionMode === 'disaster' ? 'CRAWL ENTRY ONLY' : 'TACTICAL CRAWL';
+      } else {
+        unitSoldierBadge.className = 'tactical-badge denied';
+        unitSoldierBadge.textContent = 'BLOCKED / IMPASSE';
+      }
+    }
+
+    if (unitRoverBadge) {
+      if (tac.unit3 === 'clearway') {
+        unitRoverBadge.className = 'tactical-badge clearway';
+        unitRoverBadge.textContent = 'CLEARWAY';
+      } else {
+        unitRoverBadge.className = 'tactical-badge denied';
+        unitRoverBadge.textContent = currentMissionMode === 'disaster' ? 'K9 BLOCKED' : 'PINCH HAZARD';
+      }
+    }
+
+    // Update Structural Collapse Risk Meter
+    const prevSample = currentIndex > 0 ? samples[currentIndex - 1] : null;
+    const collapseRisk = calculateStructuralCollapseRisk(sample, prevSample);
+    if (collapseRiskValue) {
+      collapseRiskValue.textContent = collapseRisk.label;
+      if (collapseRisk.riskPct > 65) collapseRiskValue.style.color = 'var(--danger)';
+      else if (collapseRisk.riskPct >= 35) collapseRiskValue.style.color = 'var(--orange)';
+      else collapseRiskValue.style.color = 'var(--acid)';
+    }
+    if (collapseRiskBar) {
+      collapseRiskBar.style.width = `${collapseRisk.riskPct}%`;
+    }
+    if (collapseRiskHint) {
+      collapseRiskHint.textContent = collapseRisk.hint;
     }
 
     // Auto-scroll map camera along route if follow mode is active
@@ -839,6 +1234,19 @@
         if (ttRight) ttRight.textContent = `${s.right.toFixed(1)} cm`;
         if (ttClearance) ttClearance.textContent = `${s.clearance.toFixed(1)} cm`;
         if (ttDist) ttDist.textContent = `${s.y.toFixed(1)} m`;
+
+        // Tooltip Tactical Badges
+        const hsTac = evaluateSampleTactical(s);
+        if (ttSoldierTag) {
+          const unit2Name = currentMissionMode === 'disaster' ? 'Firefighter' : 'Soldier';
+          ttSoldierTag.textContent = `${currentMissionMode === 'disaster' ? '🧑‍🚒' : '🪖'} ${unit2Name}: ${hsTac.unit2 === 'viable' ? 'PASSABLE' : (hsTac.unit2 === 'restricted' ? 'CRAWL' : 'BLOCKED')}`;
+          ttSoldierTag.className = `tt-tag ${hsTac.unit2 === 'viable' ? 'viable' : (hsTac.unit2 === 'restricted' ? 'restricted' : 'denied')}`;
+        }
+        if (ttTankTag) {
+          const unit1Name = currentMissionMode === 'disaster' ? 'Stretcher' : 'Tank';
+          ttTankTag.textContent = `${currentMissionMode === 'disaster' ? '🚑' : '🛡️'} ${unit1Name}: ${hsTac.unit1 === 'viable' ? 'ACCESSIBLE' : 'DENIED'}`;
+          ttTankTag.className = `tt-tag ${hsTac.unit1 === 'viable' ? 'viable' : 'denied'}`;
+        }
 
         if (ttStatus) {
           if (s.clearance < 30) {
@@ -1020,6 +1428,78 @@
     mapCtx.strokeStyle = '#b9f52d';
     mapCtx.lineWidth = 2.5 / viewScale;
     mapCtx.stroke();
+
+    // AI Tactical Unit Zoning Bands
+    if (isAiZoning) {
+      for (let i = 0; i < renderData.length; i++) {
+        const s = renderData[i];
+        const tac = evaluateSampleTactical(s);
+        const y = s.y * 100;
+        const leftX = -s.left * corridorAspect;
+        const rightX = s.right * corridorAspect;
+        const corridorWidth = rightX - leftX;
+
+        if (tac.tank === 'viable') {
+          // All-unit viable zone: subtle acid-green tactical ribbon
+          mapCtx.fillStyle = 'rgba(185, 245, 45, 0.09)';
+          mapCtx.fillRect(leftX, y - 6, corridorWidth, 12);
+        } else if (tac.soldier === 'viable') {
+          // Personnel-only access: amber warning ribbon
+          mapCtx.fillStyle = 'rgba(255, 155, 80, 0.10)';
+          mapCtx.fillRect(leftX, y - 6, corridorWidth, 12);
+        } else {
+          // Chokepoint / Impasse: red crosshatch hazard highlight
+          mapCtx.fillStyle = 'rgba(255, 77, 77, 0.22)';
+          mapCtx.fillRect(leftX, y - 8, corridorWidth, 16);
+          mapCtx.strokeStyle = 'rgba(255, 77, 77, 0.55)';
+          mapCtx.lineWidth = 1 / viewScale;
+          mapCtx.beginPath();
+          mapCtx.moveTo(leftX, y - 8);
+          mapCtx.lineTo(Math.min(rightX, leftX + 16), y + 8);
+          mapCtx.moveTo(rightX, y - 8);
+          mapCtx.lineTo(Math.max(leftX, rightX - 16), y + 8);
+          mapCtx.stroke();
+        }
+      }
+    }
+
+    // AI Optimal Autonomous Collision-Free Trajectory (Centerline)
+    if (isAiTrajectory && renderData.length > 1) {
+      mapCtx.beginPath();
+      for (let i = 0; i < renderData.length; i++) {
+        const s = renderData[i];
+        const optimalX = ((s.right - s.left) / 2) * corridorAspect;
+        const optimalY = s.y * 100;
+        if (i === 0) mapCtx.moveTo(optimalX, optimalY);
+        else mapCtx.lineTo(optimalX, optimalY);
+      }
+      mapCtx.strokeStyle = 'rgba(57, 230, 197, 0.75)';
+      mapCtx.lineWidth = 1.8 / viewScale;
+      mapCtx.setLineDash([6 / viewScale, 4 / viewScale]);
+      mapCtx.lineDashOffset = -(performance.now() / 80) / viewScale;
+      mapCtx.stroke();
+      mapCtx.setLineDash([]);
+      mapCtx.lineDashOffset = 0;
+
+      // Sparse waypoint nodes keep the autonomous route legible at any zoom.
+      const waypointStep = Math.max(1, Math.floor(renderData.length / 12));
+      mapCtx.fillStyle = 'rgba(57, 230, 197, 0.9)';
+      for (let i = 0; i < renderData.length; i += waypointStep) {
+        const waypoint = renderData[i];
+        const waypointX = ((waypoint.right - waypoint.left) / 2) * corridorAspect;
+        mapCtx.beginPath();
+        mapCtx.arc(waypointX, waypoint.y * 100, 2 / viewScale, 0, Math.PI * 2);
+        mapCtx.fill();
+      }
+
+      // Draw active target node on the optimal trajectory
+      const curOptimalX = ((curSample.right - curSample.left) / 2) * corridorAspect;
+      const curOptimalY = curSample.y * 100;
+      mapCtx.fillStyle = '#39e6c5';
+      mapCtx.beginPath();
+      mapCtx.arc(curOptimalX, curOptimalY, 3.5 / viewScale, 0, Math.PI * 2);
+      mapCtx.fill();
+    }
 
     // 6. Hover Crosshair Highlight
     if (hoveredSampleIndex >= 0 && hoveredSampleIndex < renderData.length) {
@@ -1280,6 +1760,136 @@
       minimapViewbox.style.left = '6px';
       minimapViewbox.style.width = `${mw}px`;
       minimapViewbox.style.height = `${boxHeight}px`;
+    }
+  }
+
+  // AI Tactical Mission Debrief Modal Handler
+  function openAiDebriefModal() {
+    if (!aiDebriefModal || !samples.length) {
+      alert('Please load a telemetry log before generating the AI tactical debrief.');
+      return;
+    }
+
+    const totalDist = samples[samples.length - 1].y;
+    const routeSummary = summarizeRouteViability();
+    const unit2Pct = routeSummary.unit2Pct;
+    const unit1Pct = routeSummary.unit1Pct;
+    const unit2Dist = routeSummary.unit2Distance.toFixed(1);
+    const unit1Dist = routeSummary.unit1Distance.toFixed(1);
+    const chokepointCount = countChokepointSegments();
+
+    if (debriefDistance) debriefDistance.textContent = `${totalDist.toFixed(1)} m`;
+    if (debriefSamples) debriefSamples.textContent = `${samples.length} telemetry samples`;
+    if (debriefSoldierPct) debriefSoldierPct.textContent = `${unit2Pct}%`;
+    if (debriefSoldierDist) debriefSoldierDist.textContent = `${unit2Dist}m traversable`;
+    if (debriefTankPct) debriefTankPct.textContent = `${unit1Pct}%`;
+    if (debriefTankDist) debriefTankDist.textContent = `${unit1Dist}m clearance`;
+    if (debriefChokepoints) debriefChokepoints.textContent = String(chokepointCount);
+
+    // Dual-Mode AI Strategic Directive Text & Subtitle
+    if (currentMissionMode === 'disaster') {
+      if (aiDebriefTitle) aiDebriefTitle.textContent = 'UN-INSARAG Search & Extraction SITREP';
+      if (debriefSubtitle) debriefSubtitle.textContent = 'UN-INSARAG USAR Emergency Search & Extraction Assessment';
+      if (debriefUnit2Label) debriefUnit2Label.textContent = '🧑‍🚒 FIREFIGHTER PASSAGE';
+      if (debriefUnit1Label) debriefUnit1Label.textContent = '🚑 STRETCHER ACCESS';
+      if (debriefUnit2Header) debriefUnit2Header.textContent = '🧑‍🚒 Firefighter Status';
+      if (debriefUnit1Header) debriefUnit1Header.textContent = '🚑 Stretcher Status';
+      if (debriefRecommendation) {
+        let advice = '';
+        if (unit1Pct < 40) {
+          advice = `<strong>CRITICAL RESCUE BOTTLENECK:</strong> Stretcher evacuation is blocked across <strong>${100 - unit1Pct}%</strong> of the collapsed rubble corridor due to narrow structural pinching (&lt;${stretcherClearanceReq}cm). <strong>USAR Directive:</strong> Halt manual patient stretcher extrication. Deploy concrete saws, hydraulic spreaders, and shoring at classified choke sectors. Firefighter crawl ingress is ${unit2Pct > 70 ? 'viable' : 'restricted'}; send the K9 search team forward where marked clear.`;
+        } else if (unit1Pct < 75) {
+          advice = `<strong>PARTIAL RESCUE ACCESS:</strong> Stretcher teams have approximately <strong>${unit1Dist}m</strong> of route-wide access. <strong>USAR Directive:</strong> Establish a forward casualty collection point before the first restricted sector and shore unstable walls before victim movement.`;
+        } else {
+          advice = `<strong>CLEAR RESCUE CORRIDOR:</strong> Corridor supports stretcher evacuation and first responder deployment across <strong>${unit1Pct}%</strong> of the route. <strong>USAR Directive:</strong> Full medical evacuation team ingress is permitted, subject to continuous structural monitoring.`;
+        }
+        debriefRecommendation.innerHTML = advice;
+      }
+    } else {
+      if (aiDebriefTitle) aiDebriefTitle.textContent = 'UGRV-AI Reconnaissance Assessment';
+      if (debriefSubtitle) debriefSubtitle.textContent = 'Corridor Viability Analysis & Threat Classification';
+      if (debriefUnit2Label) debriefUnit2Label.textContent = '🪖 SOLDIER PASSAGE';
+      if (debriefUnit1Label) debriefUnit1Label.textContent = '🛡️ TANK / ARMOR ACCESS';
+      if (debriefUnit2Header) debriefUnit2Header.textContent = '🪖 Soldier Status';
+      if (debriefUnit1Header) debriefUnit1Header.textContent = '🛡️ Tank Status';
+      if (debriefRecommendation) {
+        let advice = '';
+        if (unit1Pct < 30) {
+          advice = `<strong>CRITICAL ACCESS RESTRICTION:</strong> Heavy armored vehicles are denied access across <strong>${100 - unit1Pct}%</strong> of the inspected corridor. <strong>Directive:</strong> Mechanized armor must halt at the perimeter; deploy dismounted infantry with breach equipment and use the UGRV to reconnoiter marked clearways.`;
+        } else if (unit1Pct < 70) {
+          advice = `<strong>PARTIAL VEHICLE ACCESS:</strong> Armored vehicles have approximately <strong>${unit1Dist}m</strong> of route-wide access before critical lateral restrictions. <strong>Directive:</strong> Establish a mechanized halt point before the first denied sector; advance dismounted squads through personnel-only sectors.`;
+        } else {
+          advice = `<strong>HIGH CLEARANCE CORRIDOR:</strong> Corridor supports armored tactical vehicles across <strong>${unit1Pct}%</strong> of the route. <strong>Directive:</strong> Vehicular advance is permitted with continuous sonar monitoring at identified chokepoints.`;
+        }
+        debriefRecommendation.innerHTML = advice;
+      }
+    }
+
+    // Generate Sector Breakdown Table
+    if (debriefSectorTable) {
+      debriefSectorTable.innerHTML = '';
+      const sectorSize = Math.max(1, Math.ceil(samples.length / 5));
+      const sectorNames = ['Sector Alpha', 'Sector Bravo', 'Sector Charlie', 'Sector Delta', 'Sector Echo'];
+      let sectorIdx = 0;
+
+      for (let i = 0; i < samples.length; i += sectorSize) {
+        const slice = samples.slice(i, i + sectorSize);
+        if (!slice.length) continue;
+        const name = sectorNames[sectorIdx % sectorNames.length];
+        sectorIdx++;
+
+        const startY = slice[0].y.toFixed(1);
+        const endY = slice[slice.length - 1].y.toFixed(1);
+        const avgCl = (slice.reduce((acc, s) => acc + s.clearance, 0) / slice.length).toFixed(1);
+
+        const unit2Viable = slice.filter(s => evaluateSampleTactical(s).unit2 === 'viable').length / slice.length >= 0.7;
+        const unit1Viable = slice.filter(s => evaluateSampleTactical(s).unit1 === 'viable').length / slice.length >= 0.7;
+        const unit3Viable = slice.filter(s => evaluateSampleTactical(s).unit3 === 'clearway').length / slice.length >= 0.7;
+
+        let directive = '';
+        if (currentMissionMode === 'disaster') {
+          if (unit1Viable) directive = 'Stretcher extraction clear; monitor and shore as needed';
+          else if (unit2Viable) directive = 'SCBA/K9 ingress only; shore and widen before extraction';
+          else if (unit3Viable) directive = 'K9 reconnaissance only; structural breach required';
+          else directive = 'Impasse; stabilize rubble before entry';
+        } else if (unit1Viable) {
+          directive = 'All units permitted (armor + infantry)';
+        } else if (unit2Viable) {
+          directive = 'Mechanized halt point; dismounted infantry only';
+        } else if (unit3Viable) {
+          directive = 'UGRV reconnaissance only; engineering breach required';
+        } else {
+          directive = 'Impasse; breach and route-clearance operation required';
+        }
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>${name}</strong></td>
+          <td>${startY}m – ${endY}m</td>
+          <td>${avgCl} cm</td>
+          <td><span class="tt-tag ${unit2Viable ? 'viable' : 'denied'}">${unit2Viable ? 'PASSABLE' : 'RESTRICTED'}</span></td>
+          <td><span class="tt-tag ${unit1Viable ? 'viable' : 'denied'}">${unit1Viable ? 'ACCESSIBLE' : 'DENIED'}</span></td>
+          <td>${directive}</td>
+        `;
+        debriefSectorTable.appendChild(row);
+      }
+    }
+
+    lastFocusedElement = document.activeElement;
+    aiDebriefModal.hidden = false;
+    aiDebriefModal.classList.add('active');
+    aiDebriefModal.setAttribute('aria-hidden', 'false');
+    for (const element of document.querySelectorAll('body > :not(#aiDebriefModal):not(script)')) element.inert = true;
+    if (aiModalClose) aiModalClose.focus();
+  }
+
+  function closeAiDebriefModal() {
+    if (aiDebriefModal) {
+      aiDebriefModal.classList.remove('active');
+      aiDebriefModal.setAttribute('aria-hidden', 'true');
+      aiDebriefModal.hidden = true;
+      for (const element of document.querySelectorAll('body > :not(#aiDebriefModal):not(script)')) element.inert = false;
+      if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') lastFocusedElement.focus();
     }
   }
 
