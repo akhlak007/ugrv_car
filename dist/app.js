@@ -62,6 +62,8 @@
   const statDistanceEl = document.getElementById('statDistance');
   const statMinEl = document.getElementById('statMin');
   const systemStatusEl = document.getElementById('systemStatus');
+  const themeToggle = document.getElementById('themeToggle');
+  const themeColorMeta = document.getElementById('themeColorMeta');
 
   // AI Tactical DOM Elements
   const aiDebriefBtn = document.getElementById('aiDebriefBtn');
@@ -176,6 +178,7 @@
 
   // Initialize
   function init() {
+    initializeTheme();
     setupEventListeners();
     setupCanvasDPI();
 
@@ -222,7 +225,42 @@
     setTimeout(resize, 60);
   }
 
+  function initializeTheme() {
+    const theme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+    applyTheme(theme, false);
+  }
+
+  function applyTheme(theme, persist = true) {
+    const isLight = theme === 'light';
+    if (isLight) document.documentElement.dataset.theme = 'light';
+    else delete document.documentElement.dataset.theme;
+
+    if (themeToggle) {
+      const icon = themeToggle.querySelector('.theme-toggle-icon');
+      const label = themeToggle.querySelector('.theme-toggle-label');
+      themeToggle.setAttribute('aria-pressed', String(isLight));
+      themeToggle.setAttribute('aria-label', 'Light mode');
+      themeToggle.title = `Switch to ${isLight ? 'dark' : 'light'} mode`;
+      if (icon) icon.textContent = isLight ? '☀' : '☾';
+      if (label) label.textContent = isLight ? 'LIGHT' : 'DARK';
+    }
+    if (themeColorMeta) themeColorMeta.content = isLight ? '#eef5f1' : '#07110f';
+
+    if (persist) {
+      try {
+        localStorage.setItem('echopath-theme', isLight ? 'light' : 'dark');
+      } catch (_) {}
+    }
+  }
+
   function setupEventListeners() {
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+        const nextTheme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+        applyTheme(nextTheme);
+      });
+    }
+
     // File upload
     if (dropZone) {
       dropZone.addEventListener('dragover', (e) => {
@@ -1268,9 +1306,82 @@
   }
 
   function getColorForDistance(cm) {
-    if (cm < 25) return '#ff9b50'; // near
-    if (cm < 60) return '#b9f52d'; // mid
-    return '#39e6c5'; // far
+    const palette = getCanvasPalette();
+    if (cm < 25) return palette.orange; // near
+    if (cm < 60) return palette.acid; // mid
+    return palette.cyan; // far
+  }
+
+  function getCanvasPalette() {
+    if (document.documentElement.dataset.theme === 'light') {
+      return {
+        grid: 'rgba(49, 78, 66, 0.38)',
+        label: 'rgba(38, 67, 56, 0.92)',
+        centerline: 'rgba(49, 78, 66, 0.62)',
+        quiet: 'rgba(49, 78, 66, 0.32)',
+        faint: 'rgba(49, 78, 66, 0.2)',
+        acid: '#557700',
+        acidStrong: 'rgba(85, 119, 0, 0.9)',
+        acidSoft: 'rgba(85, 119, 0, 0.16)',
+        cyan: '#007e70',
+        cyanStrong: 'rgba(0, 126, 112, 0.9)',
+        cyanSoft: 'rgba(0, 126, 112, 0.16)',
+        orange: '#ad4d10',
+        orangeStrong: 'rgba(173, 77, 16, 0.9)',
+        orangeSoft: 'rgba(173, 77, 16, 0.15)',
+        dangerSoft: 'rgba(197, 53, 53, 0.2)',
+        hazardFill: 'rgba(173, 77, 16, 0.18)',
+        corridorCyan: 'rgba(0, 126, 112, 0.11)',
+        corridorOrange: 'rgba(173, 77, 16, 0.11)',
+        boundary: 'rgba(85, 119, 0, 0.78)',
+        crossbeamHover: 'rgba(0, 126, 112, 0.9)',
+        trajectory: 'rgba(0, 126, 112, 0.86)',
+        startFill: 'rgba(0, 126, 112, 0.18)',
+        radarGrid: 'rgba(49, 78, 66, 0.46)',
+        sweepFill: 'rgba(85, 119, 0, 0.24)',
+        sweepLine: 'rgba(85, 119, 0, 0.82)',
+        sensorCyan: 'rgba(0, 126, 112, 0.72)',
+        sensorOrange: 'rgba(173, 77, 16, 0.72)',
+        minimapTrack: 'rgba(49, 78, 66, 0.76)',
+        minimapCorridor: 'rgba(0, 126, 112, 0.18)',
+        vehicleFill: '#ffffff',
+        blipOutline: '#10241d'
+      };
+    }
+
+    return {
+      grid: 'rgba(27, 48, 42, 0.4)',
+      label: 'rgba(111, 139, 128, 0.6)',
+      centerline: 'rgba(55, 80, 70, 0.6)',
+      quiet: 'rgba(55, 80, 70, 0.35)',
+      faint: 'rgba(27, 48, 42, 0.2)',
+      acid: '#b9f52d',
+      acidStrong: 'rgba(185, 245, 45, 0.85)',
+      acidSoft: 'rgba(185, 245, 45, 0.09)',
+      cyan: '#39e6c5',
+      cyanStrong: 'rgba(57, 230, 197, 0.9)',
+      cyanSoft: 'rgba(57, 230, 197, 0.15)',
+      orange: '#ff9b50',
+      orangeStrong: 'rgba(255, 155, 80, 0.9)',
+      orangeSoft: 'rgba(255, 155, 80, 0.1)',
+      dangerSoft: 'rgba(255, 77, 77, 0.22)',
+      hazardFill: 'rgba(255, 155, 80, 0.18)',
+      corridorCyan: 'rgba(57, 230, 197, 0.08)',
+      corridorOrange: 'rgba(255, 155, 80, 0.08)',
+      boundary: 'rgba(185, 245, 45, 0.45)',
+      crossbeamHover: 'rgba(57, 230, 197, 0.8)',
+      trajectory: 'rgba(57, 230, 197, 0.75)',
+      startFill: 'rgba(57, 230, 197, 0.2)',
+      radarGrid: 'rgba(27, 48, 42, 0.8)',
+      sweepFill: 'rgba(185, 245, 45, 0.25)',
+      sweepLine: 'rgba(185, 245, 45, 0.7)',
+      sensorCyan: 'rgba(57, 230, 197, 0.3)',
+      sensorOrange: 'rgba(255, 155, 80, 0.3)',
+      minimapTrack: 'rgba(27, 48, 42, 0.9)',
+      minimapCorridor: 'rgba(57, 230, 197, 0.15)',
+      vehicleFill: '#0f221b',
+      blipOutline: '#ffffff'
+    };
   }
 
   // Animation / Render Loop
@@ -1302,13 +1413,14 @@
     const renderData = getSmoothedSamples();
     const curSample = renderData[currentIndex] || renderData[0];
     const maxYcm = samples[samples.length - 1].y * 100;
+    const palette = getCanvasPalette();
 
     mapCtx.save();
     mapCtx.translate(panX, panY);
     mapCtx.scale(viewScale, -viewScale); // Invert Y so vehicle travels UPWARDS
 
     // 1. Grid Lines & Meter Guides
-    mapCtx.strokeStyle = 'rgba(27, 48, 42, 0.4)';
+    mapCtx.strokeStyle = palette.grid;
     mapCtx.lineWidth = 1 / viewScale;
     
     // Horizontal distance lines every 1 meter (100 cm) or 5m depending on scale
@@ -1322,7 +1434,7 @@
       // Distance label in canvas space
       mapCtx.save();
       mapCtx.scale(1 / viewScale, -1 / viewScale); // Un-invert for readable text
-      mapCtx.fillStyle = 'rgba(111, 139, 128, 0.6)';
+      mapCtx.fillStyle = palette.label;
       mapCtx.font = '9px "DM Mono", monospace';
       mapCtx.fillText(`${(y / 100).toFixed(0)}m`, (-320 * corridorAspect) * viewScale, -y * viewScale + 3);
       mapCtx.restore();
@@ -1330,7 +1442,7 @@
 
     // Vertical Centerline (Vehicle track reference)
     mapCtx.setLineDash([4 / viewScale, 4 / viewScale]);
-    mapCtx.strokeStyle = 'rgba(55, 80, 70, 0.6)';
+    mapCtx.strokeStyle = palette.centerline;
     mapCtx.lineWidth = 1 / viewScale;
     mapCtx.beginPath();
     mapCtx.moveTo(0, 0);
@@ -1344,7 +1456,7 @@
         const s = renderData[i];
         if (s.clearance < 30 || s.left < 15 || s.right < 15) {
           const y = s.y * 100;
-          mapCtx.fillStyle = 'rgba(255, 155, 80, 0.18)';
+          mapCtx.fillStyle = palette.hazardFill;
           mapCtx.beginPath();
           mapCtx.rect(-s.left * corridorAspect, y - 8, (s.left + s.right) * corridorAspect, 16);
           mapCtx.fill();
@@ -1374,14 +1486,14 @@
 
       // Shaded corridor area
       const corridorGrad = mapCtx.createLinearGradient(0, 0, 0, maxYcm || 100);
-      corridorGrad.addColorStop(0, 'rgba(57, 230, 197, 0.08)');
-      corridorGrad.addColorStop(0.5, 'rgba(185, 245, 45, 0.09)');
-      corridorGrad.addColorStop(1, 'rgba(255, 155, 80, 0.08)');
+      corridorGrad.addColorStop(0, palette.corridorCyan);
+      corridorGrad.addColorStop(0.5, palette.acidSoft);
+      corridorGrad.addColorStop(1, palette.corridorOrange);
       mapCtx.fillStyle = corridorGrad;
       mapCtx.fill();
 
       // Outer boundary walls
-      mapCtx.strokeStyle = 'rgba(185, 245, 45, 0.45)';
+      mapCtx.strokeStyle = palette.boundary;
       mapCtx.lineWidth = 1.5 / viewScale;
       mapCtx.stroke();
     }
@@ -1396,8 +1508,8 @@
 
       // Crossbeams connecting center to walls
       mapCtx.strokeStyle = isCurrent 
-        ? 'rgba(185, 245, 45, 0.85)' 
-        : (isHovered ? 'rgba(57, 230, 197, 0.8)' : (isPast ? 'rgba(55, 80, 70, 0.35)' : 'rgba(27, 48, 42, 0.2)'));
+        ? palette.acidStrong
+        : (isHovered ? palette.crossbeamHover : (isPast ? palette.quiet : palette.faint));
       mapCtx.lineWidth = (isCurrent || isHovered ? 2 : 1) / viewScale;
       mapCtx.beginPath();
       mapCtx.moveTo(-s.left * corridorAspect, y);
@@ -1425,7 +1537,7 @@
       if (i === 0) mapCtx.moveTo(0, y);
       else mapCtx.lineTo(0, y);
     }
-    mapCtx.strokeStyle = '#b9f52d';
+    mapCtx.strokeStyle = palette.acid;
     mapCtx.lineWidth = 2.5 / viewScale;
     mapCtx.stroke();
 
@@ -1441,15 +1553,15 @@
 
         if (tac.tank === 'viable') {
           // All-unit viable zone: subtle acid-green tactical ribbon
-          mapCtx.fillStyle = 'rgba(185, 245, 45, 0.09)';
+          mapCtx.fillStyle = palette.acidSoft;
           mapCtx.fillRect(leftX, y - 6, corridorWidth, 12);
         } else if (tac.soldier === 'viable') {
           // Personnel-only access: amber warning ribbon
-          mapCtx.fillStyle = 'rgba(255, 155, 80, 0.10)';
+          mapCtx.fillStyle = palette.orangeSoft;
           mapCtx.fillRect(leftX, y - 6, corridorWidth, 12);
         } else {
           // Chokepoint / Impasse: red crosshatch hazard highlight
-          mapCtx.fillStyle = 'rgba(255, 77, 77, 0.22)';
+          mapCtx.fillStyle = palette.dangerSoft;
           mapCtx.fillRect(leftX, y - 8, corridorWidth, 16);
           mapCtx.strokeStyle = 'rgba(255, 77, 77, 0.55)';
           mapCtx.lineWidth = 1 / viewScale;
@@ -1473,7 +1585,7 @@
         if (i === 0) mapCtx.moveTo(optimalX, optimalY);
         else mapCtx.lineTo(optimalX, optimalY);
       }
-      mapCtx.strokeStyle = 'rgba(57, 230, 197, 0.75)';
+      mapCtx.strokeStyle = palette.trajectory;
       mapCtx.lineWidth = 1.8 / viewScale;
       mapCtx.setLineDash([6 / viewScale, 4 / viewScale]);
       mapCtx.lineDashOffset = -(performance.now() / 80) / viewScale;
@@ -1483,7 +1595,7 @@
 
       // Sparse waypoint nodes keep the autonomous route legible at any zoom.
       const waypointStep = Math.max(1, Math.floor(renderData.length / 12));
-      mapCtx.fillStyle = 'rgba(57, 230, 197, 0.9)';
+      mapCtx.fillStyle = palette.cyanStrong;
       for (let i = 0; i < renderData.length; i += waypointStep) {
         const waypoint = renderData[i];
         const waypointX = ((waypoint.right - waypoint.left) / 2) * corridorAspect;
@@ -1495,7 +1607,7 @@
       // Draw active target node on the optimal trajectory
       const curOptimalX = ((curSample.right - curSample.left) / 2) * corridorAspect;
       const curOptimalY = curSample.y * 100;
-      mapCtx.fillStyle = '#39e6c5';
+      mapCtx.fillStyle = palette.cyan;
       mapCtx.beginPath();
       mapCtx.arc(curOptimalX, curOptimalY, 3.5 / viewScale, 0, Math.PI * 2);
       mapCtx.fill();
@@ -1505,7 +1617,7 @@
     if (hoveredSampleIndex >= 0 && hoveredSampleIndex < renderData.length) {
       const hs = renderData[hoveredSampleIndex];
       const hy = hs.y * 100;
-      mapCtx.strokeStyle = 'rgba(57, 230, 197, 0.9)';
+      mapCtx.strokeStyle = palette.cyanStrong;
       mapCtx.lineWidth = 1.5 / viewScale;
       mapCtx.setLineDash([3 / viewScale, 3 / viewScale]);
       mapCtx.beginPath();
@@ -1517,8 +1629,8 @@
 
     // 7. Start / End Markers
     // Start Marker (0m)
-    mapCtx.fillStyle = 'rgba(57, 230, 197, 0.2)';
-    mapCtx.strokeStyle = '#39e6c5';
+    mapCtx.fillStyle = palette.startFill;
+    mapCtx.strokeStyle = palette.cyan;
     mapCtx.lineWidth = 1.5 / viewScale;
     mapCtx.beginPath();
     mapCtx.arc(0, 0, 6 / viewScale, 0, Math.PI * 2);
@@ -1526,7 +1638,7 @@
     mapCtx.stroke();
 
     // End Marker
-    mapCtx.strokeStyle = '#ff9b50';
+    mapCtx.strokeStyle = palette.orange;
     mapCtx.beginPath();
     mapCtx.arc(0, maxYcm, 6 / viewScale, 0, Math.PI * 2);
     mapCtx.stroke();
@@ -1538,14 +1650,14 @@
 
     // Active Beam Lines from vehicle body to walls
     mapCtx.setLineDash([3 / viewScale, 3 / viewScale]);
-    mapCtx.strokeStyle = '#39e6c5';
+    mapCtx.strokeStyle = palette.cyan;
     mapCtx.lineWidth = 1.5 / viewScale;
     mapCtx.beginPath();
     mapCtx.moveTo(-vehWidth / 2, curY);
     mapCtx.lineTo(-curSample.left * corridorAspect, curY);
     mapCtx.stroke();
 
-    mapCtx.strokeStyle = '#ff9b50';
+    mapCtx.strokeStyle = palette.orange;
     mapCtx.beginPath();
     mapCtx.moveTo(vehWidth / 2, curY);
     mapCtx.lineTo(curSample.right * corridorAspect, curY);
@@ -1553,8 +1665,8 @@
     mapCtx.setLineDash([]);
 
     // Vehicle Body
-    mapCtx.fillStyle = '#0f221b';
-    mapCtx.strokeStyle = '#b9f52d';
+    mapCtx.fillStyle = palette.vehicleFill;
+    mapCtx.strokeStyle = palette.acid;
     mapCtx.lineWidth = 2 / viewScale;
     mapCtx.beginPath();
     mapCtx.roundRect(-vehWidth / 2, curY - vehLength / 2, vehWidth, vehLength, 3 / viewScale);
@@ -1562,7 +1674,7 @@
     mapCtx.stroke();
 
     // Forward Direction Arrow
-    mapCtx.fillStyle = '#b9f52d';
+    mapCtx.fillStyle = palette.acid;
     mapCtx.beginPath();
     mapCtx.moveTo(0, curY + vehLength * 0.35);
     mapCtx.lineTo(-vehWidth * 0.3, curY);
@@ -1573,7 +1685,9 @@
 
     // Pulsing Sonar Ping Wave
     const pulseRadius = ((Date.now() / 25) % 40) / viewScale;
-    mapCtx.strokeStyle = `rgba(185, 245, 45, ${Math.max(0, 1 - pulseRadius / (40 / viewScale))})`;
+    mapCtx.strokeStyle = document.documentElement.dataset.theme === 'light'
+      ? `rgba(85, 119, 0, ${Math.max(0, 1 - pulseRadius / (40 / viewScale))})`
+      : `rgba(185, 245, 45, ${Math.max(0, 1 - pulseRadius / (40 / viewScale))})`;
     mapCtx.lineWidth = 1.5 / viewScale;
     mapCtx.beginPath();
     mapCtx.arc(0, curY, pulseRadius, 0, Math.PI * 2);
@@ -1596,9 +1710,11 @@
     const cx = w / 2;
     const cy = h - 22;
     const maxR = Math.min(cx - 15, cy - 15);
+    if (maxR <= 0) return;
+    const palette = getCanvasPalette();
 
     // Draw Radar Rings (Arc from PI to 2*PI)
-    radarCtx.strokeStyle = 'rgba(27, 48, 42, 0.8)';
+    radarCtx.strokeStyle = palette.radarGrid;
     radarCtx.lineWidth = 1;
     const rings = [0.25, 0.5, 0.75, 1.0];
     rings.forEach(r => {
@@ -1622,8 +1738,8 @@
     const sweepY = cy + Math.sin(Math.PI + radarAngle) * maxR;
 
     const sweepGrad = radarCtx.createRadialGradient(cx, cy, 0, cx, cy, maxR);
-    sweepGrad.addColorStop(0, 'rgba(185, 245, 45, 0.25)');
-    sweepGrad.addColorStop(1, 'rgba(185, 245, 45, 0.0)');
+    sweepGrad.addColorStop(0, palette.sweepFill);
+    sweepGrad.addColorStop(1, 'rgba(185, 245, 45, 0)');
 
     radarCtx.beginPath();
     radarCtx.moveTo(cx, cy);
@@ -1635,7 +1751,7 @@
     radarCtx.beginPath();
     radarCtx.moveTo(cx, cy);
     radarCtx.lineTo(sweepX, sweepY);
-    radarCtx.strokeStyle = 'rgba(185, 245, 45, 0.7)';
+    radarCtx.strokeStyle = palette.sweepLine;
     radarCtx.lineWidth = 1.5;
     radarCtx.stroke();
 
@@ -1651,7 +1767,7 @@
     const lx = cx - leftR;
     const ly = cy;
 
-    radarCtx.strokeStyle = 'rgba(57, 230, 197, 0.3)';
+    radarCtx.strokeStyle = palette.sensorCyan;
     radarCtx.lineWidth = 2;
     radarCtx.beginPath();
     radarCtx.moveTo(cx, cy);
@@ -1662,7 +1778,7 @@
     radarCtx.beginPath();
     radarCtx.arc(lx, ly, 6, 0, Math.PI * 2);
     radarCtx.fill();
-    radarCtx.strokeStyle = '#fff';
+    radarCtx.strokeStyle = palette.blipOutline;
     radarCtx.lineWidth = 1;
     radarCtx.stroke();
 
@@ -1671,7 +1787,7 @@
     const rx = cx + rightR;
     const ry = cy;
 
-    radarCtx.strokeStyle = 'rgba(255, 155, 80, 0.3)';
+    radarCtx.strokeStyle = palette.sensorOrange;
     radarCtx.lineWidth = 2;
     radarCtx.beginPath();
     radarCtx.moveTo(cx, cy);
@@ -1682,12 +1798,12 @@
     radarCtx.beginPath();
     radarCtx.arc(rx, ry, 6, 0, Math.PI * 2);
     radarCtx.fill();
-    radarCtx.strokeStyle = '#fff';
+    radarCtx.strokeStyle = palette.blipOutline;
     radarCtx.lineWidth = 1;
     radarCtx.stroke();
 
     // Center Vehicle Marker
-    radarCtx.fillStyle = '#b9f52d';
+    radarCtx.fillStyle = palette.acid;
     radarCtx.beginPath();
     radarCtx.arc(cx, cy, 4, 0, Math.PI * 2);
     radarCtx.fill();
@@ -1708,9 +1824,10 @@
     const pad = 6;
     const drawH = mh - (pad * 2);
     const cx = mw / 2;
+    const palette = getCanvasPalette();
 
     // Draw route track
-    minimapCtx.strokeStyle = 'rgba(27, 48, 42, 0.9)';
+    minimapCtx.strokeStyle = palette.minimapTrack;
     minimapCtx.lineWidth = 1;
     minimapCtx.beginPath();
     minimapCtx.moveTo(cx, mh - pad);
@@ -1718,7 +1835,7 @@
     minimapCtx.stroke();
 
     // Draw corridor outline
-    minimapCtx.fillStyle = 'rgba(57, 230, 197, 0.15)';
+    minimapCtx.fillStyle = palette.minimapCorridor;
     minimapCtx.beginPath();
     for (let i = 0; i < samples.length; i++) {
       const s = samples[i];
@@ -1739,7 +1856,7 @@
     // Draw Vehicle Dot on Minimap
     const curSample = samples[currentIndex] || samples[0];
     const curMinimapY = mh - pad - ((curSample.y * 100) / maxYcm) * drawH;
-    minimapCtx.fillStyle = '#b9f52d';
+    minimapCtx.fillStyle = palette.acid;
     minimapCtx.beginPath();
     minimapCtx.arc(cx, curMinimapY, 3.5, 0, Math.PI * 2);
     minimapCtx.fill();

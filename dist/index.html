@@ -3,8 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#07110f" />
+  <meta name="theme-color" id="themeColorMeta" content="#07110f" />
   <title>EchoPath — Sonar Map Studio</title>
+  <link rel="icon" href="data:," />
+  <script>
+    try {
+      if (localStorage.getItem('echopath-theme') === 'light') {
+        document.documentElement.dataset.theme = 'light';
+      }
+    } catch (_) {}
+  </script>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -15,6 +23,10 @@
       <span><b>ECHOPATH</b><small>TACTICAL SLAM &amp; INTELLIGENCE</small></span>
     </a>
     <div class="topbar-actions">
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Light mode" aria-pressed="false" title="Switch to light mode">
+        <span class="theme-toggle-icon" aria-hidden="true">☾</span>
+        <span class="theme-toggle-label">DARK</span>
+      </button>
       <button class="ai-debrief-btn" id="aiDebriefBtn" title="Generate AI Mission Intelligence Report">
         <span class="ai-pulse"></span>
         <span>⚡ AI TACTICAL DEBRIEF</span>
